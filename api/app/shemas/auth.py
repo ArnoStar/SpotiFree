@@ -17,3 +17,6 @@ class UserSignIn(BaseModel):
             raise ValueError("Passwords do not match")
         return password_confirm
 
+class ConfirmationCode(BaseModel):
+    code:str
+    email:str

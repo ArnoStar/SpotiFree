@@ -9,6 +9,8 @@ class _Settings(BaseSettings):
     jwt_secret_key:str
     jwt_algorithm:str
 
+    register_expiration_time:int
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -8,6 +8,7 @@ from app.db.database_sql import get_db
 from app.db.database_redis import redis
 from app.core.security import hash_password
 from app.core.config import settings
+from app.services.email import send_confirmation_email
 
 from random import randint
 from sqlalchemy.orm import Session
@@ -85,6 +86,7 @@ async def signin_user(user_information:UserSignIn, db = Depends(get_db)):
         raise HTTPException(409, "Already exists")
     
     password_hash = hash_password(user_information.password)
+
     #shity code for confimation code
     confirmation_code = ""
     for _ in range(8):
@@ -92,7 +94,9 @@ async def signin_user(user_information:UserSignIn, db = Depends(get_db)):
 
     user_info = {"code":confirmation_code,
                  "password_hash": password_hash}
-    print(user_info)
+    
+    await send_confirmation_email(user_information.email, confirmation_code)
+
     await redis.set(name = user_information.email, value = json.dumps(user_info), ex=REGISTER_EXPIRATION_TIME)
 
     return {"message":"Please confirm your email"}

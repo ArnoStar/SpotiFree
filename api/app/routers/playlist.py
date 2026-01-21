@@ -10,8 +10,8 @@ router = APIRouter(prefix="/playlist", tags=["Playlist"])
 def post_pl(playlist:PlayList = Depends(add_playlist)):
     return playlist
 
-@router.get("/{id}")
-def get_pl(playlist:PlayList = Depends(get_playlist_with_musics), response_model=PlayListGet):
+@router.get("/{id}", response_model=PlayListGet)
+def get_pl(playlist:PlayList = Depends(get_playlist_with_musics)):
     return playlist
 
 @router.put("/{id}/follow")

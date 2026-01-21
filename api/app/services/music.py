@@ -4,7 +4,7 @@ from app.shemas.music import MusicPost
 from app.core.config import settings
 from app.db.database_sql import get_db
 from app.db.models import Music, User
-from app.services.auth import get_current_user
+from app.deps.auth import get_current_user
 from app.services.deps import register_function
 
 from pytubefix import AsyncYouTube

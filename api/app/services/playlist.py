@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException
 
 from app.db.database_sql import get_db
 from app.db.models import PlayList, PlayListMusic, UserPlayList, Music, User
-from app.services.auth import get_current_user
+from app.deps.auth import get_current_user
 from app.services.music import get_metadata_music
 from app.shemas.playlist import PlayListGet
 

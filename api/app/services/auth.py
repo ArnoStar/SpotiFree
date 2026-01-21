@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.shemas.auth import UserSignIn, ConfirmationCode
+from app.shemas.auth import UserSignIn
 from app.db.models import User
 from app.db.database_sql import get_db
 from app.db.database_redis import redis
@@ -22,33 +22,6 @@ SECRET_KEY = settings.jwt_secret_key
 ALGORITHM = settings.jwt_algorithm
 
 REGISTER_EXPIRATION_TIME = settings.register_expiration_time
-
-def verify_token(token: str = Depends(oauth2shema)):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload["user"]
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-
-    return payload
-
-def get_current_user(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)) -> User:
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    user = get_user(token_data["user"], db)
-    if user is None:
-        raise credentials_exception
-    return user
 
 def create_token(data: dict, delta_exp_time: timedelta | None = None):
     to_encode = data.copy()
@@ -72,35 +45,20 @@ def create_user(email:str, password_hash:str, db:Session = Depends(get_db)):
 def get_user(email:str, db:Session = Depends(get_db)):
     return db.query(User).filter(User.email == email).first()
 
-def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db:Session = Depends(get_db)):
-    user = get_user(form_data.username, db)
-    if user is None:
-        raise HTTPException(401, "Invalid credentials, the email isn't registered")
-    
-    token = create_token({"user":user.email})
+def user_exist(email:str, db:Session = Depends(get_db)) -> bool:
+    return get_user(email, db) != None
 
-    return token
+def generate_random_code(lenght:int = 8):
+    code = ""
+    for _ in range(lenght):
+        code+=str(randint(0,9))
+    return code
 
-async def signin_user(user_information:UserSignIn, db = Depends(get_db)):
-    if get_user(user_information.email, db) is not None:
-        raise HTTPException(409, "Already exists")
-    
-    password_hash = hash_password(user_information.password)
+async def add_email_to_confirmation(email:str, password_hash:str, code:int):
+    user_info = {"code":code,"password_hash":password_hash, "email":email}
+    await redis.set(name = email, value = json.dumps(user_info), ex=REGISTER_EXPIRATION_TIME)
 
-    #shity code for confimation code
-    confirmation_code = ""
-    for _ in range(8):
-        confirmation_code+=str(randint(0,9))
-
-    user_info = {"code":confirmation_code,
-                 "password_hash": password_hash}
-    
-    await send_confirmation_email(user_information.email, confirmation_code)
-
-    await redis.set(name = user_information.email, value = json.dumps(user_info), ex=REGISTER_EXPIRATION_TIME)
-
-    return {"message":"Please confirm your email"}
-
+'''
 async def valid_email(confirmation:ConfirmationCode, db:Session = Depends(get_db)):
     user_info = await redis.get(confirmation.email)
     if user_info is None:
@@ -114,3 +72,4 @@ async def valid_email(confirmation:ConfirmationCode, db:Session = Depends(get_db
     await redis.delete(user.email)
 
     return user
+'''

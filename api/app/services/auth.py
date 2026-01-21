@@ -39,7 +39,7 @@ def verify_token(token: str = Depends(oauth2shema)):
 
     return payload
 
-def get_current_user(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
+def get_current_user(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",

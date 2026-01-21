@@ -11,6 +11,9 @@ class _Settings(BaseSettings):
 
     register_expiration_time:int
 
+    audio_dir:str
+    img_dir:str
+
     #Mail config
 
     mail_username:str

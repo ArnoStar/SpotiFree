@@ -8,7 +8,7 @@ async def send_confirmation_email(email: EmailStr, code:str):
     message = MessageSchema(
         subject="Your confirmation code",
         recipients=[email],
-        body=f"You confirmation code is {code}",
+        body=f"Your confirmation code is {code}",
         subtype="plain"
     )
 

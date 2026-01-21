@@ -8,7 +8,6 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/login")
 def login(token: str = Depends(login_user)):
-    print(token)
     return {"access_token": token, "token_type": "bearer"}
 
 @router.post("/signin")
